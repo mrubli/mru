@@ -371,12 +371,9 @@ function! s:MRU_Window_Edit_File(fname, multi, edit_type, open_type)
         else
             if g:MRU_Auto_Close == 1 && g:MRU_Use_Current_Window == 0
                 " Jump to the window from which the MRU window was opened
-                if exists('s:MRU_last_buffer')
-                    let last_winnr = bufwinnr(s:MRU_last_buffer)
-                    if last_winnr != -1 && last_winnr != winnr()
-                        exe last_winnr . 'wincmd w'
-                    endif
-                endif
+                if exists('s:MRU_last_window')
+	                call win_gotoid(s:MRU_last_window)
+	            endif
             else
                 if g:MRU_Use_Current_Window == 0
                     " Goto the previous window
@@ -488,10 +485,14 @@ function! s:MRU_Open_Window(...)
         return
     endif
 
-    " Save the current buffer number. This is used later to open a file when a
-    " entry is selected from the MRU window. The window number is not saved,
-    " as the window number will change when new windows are opened.
-    let s:MRU_last_buffer = bufnr('%')
+    " Save the current window number. This is used later to open a file when a
+    " entry is selected from the MRU window.
+    " We don't use the window number because window numbers aren't stable and
+    " we don't use buffer numbers because they don't distinguish between
+    " multiple windows displaying the same buffer.
+    " Using the window-ID solves both these problems because it is unique.
+    " This requires VIM 7.4+.
+    let s:MRU_last_window = win_getid()
 
     let bname = '__MRU_Files__'
 
